@@ -3,24 +3,24 @@ use std::hash::Hash;
 use std::thread;
 use std::time::Duration;
 
-pub struct Cacher<'a, F, A: 'a, R: 'a> {
+pub struct Cacher<'a, F, K: 'a, V: 'a> {
     calculation: F,
-    values: HashMap<&'a A, &'a R>,
+    values: HashMap<&'a K, &'a V>,
 }
 
-impl<'a, F, A, R> Cacher<'a, F, A, R>
+impl<'a, F, K, V> Cacher<'a, F, K, V>
 where
-    F: Fn(&A) -> &R,
-    A: Eq + Hash,
+    F: Fn(&K) -> &V,
+    K: Eq + Hash,
 {
-    pub fn new(calculation: F) -> Cacher<'a, F, A, R> {
+    pub fn new(calculation: F) -> Cacher<'a, F, K, V> {
         Cacher {
             calculation,
             values: HashMap::new(),
         }
     }
 
-    pub fn value(&mut self, arg: &'a A) -> &'a R {
+    pub fn value(&mut self, arg: &'a K) -> &'a V {
         match self.values.get(&arg) {
             Some(&v) => &v,
             None => {
