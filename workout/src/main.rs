@@ -9,34 +9,33 @@ fn main() {
     generate_workout(intensity, random_number);
 }
 
-struct Cacher<T, U, V>
+struct Cacher<'a, T, U: 'a, V: 'a>
 where
-    T: Fn(&U) -> V,
+    T: Fn(&U) -> &V,
 {
     calculation: T,
-    values: HashMap<U, V>,
+    values: HashMap<&'a U, &'a V>,
 }
 
-impl<T, U, V> Cacher<T, U, V>
+impl<'a, T, U, V> Cacher<'a, T, U, V>
 where
-    T: Fn(&U) -> V,
+    T: Fn(&U) -> &V,
     U: Eq + Hash,
-    V: Copy,
 {
-    fn new(calculation: T) -> Cacher<T, U, V> {
+    fn new(calculation: T) -> Cacher<'a, T, U, V> {
         Cacher {
             calculation,
             values: HashMap::new(),
         }
     }
 
-    fn value(&mut self, arg: U) -> V {
+    fn value(&mut self, arg: &'a U) -> &'a V {
         match self.values.get(&arg) {
-            Some(&v) => v,
+            Some(&v) => &v,
             None => {
                 let v = (self.calculation)(&arg);
-                self.values.insert(arg, v);
-                v
+                self.values.insert(&arg, v);
+                &v
             }
         }
     }
@@ -46,19 +45,19 @@ fn generate_workout(intensity: u32, random_number: u32) {
     let mut expensive_result = Cacher::new(|num| {
         println!("calculating slowly...");
         thread::sleep(Duration::from_secs(2));
-        *num
+        num
     });
 
     if intensity < 25 {
-        println!("Today, do {} pushups!", expensive_result.value(intensity));
-        println!("Next, do {} situps!", expensive_result.value(intensity));
+        println!("Today, do {} pushups!", expensive_result.value(&intensity));
+        println!("Next, do {} situps!", expensive_result.value(&intensity));
     } else {
         if random_number == 3 {
             println!("Take a break today! Remember to stay hydrated!");
         } else {
             println!(
                 "Today, run for {} minutes!",
-                expensive_result.value(intensity)
+                expensive_result.value(&intensity)
             );
         }
     }
@@ -66,10 +65,10 @@ fn generate_workout(intensity: u32, random_number: u32) {
 
 #[test]
 fn call_with_different_values() {
-    let mut c = Cacher::new(|a| *a);
+    let mut c = Cacher::new(|_| &"hello");
 
-    let _ = c.value(1);
-    let v2 = c.value(2);
+    let _ = c.value(&3);
+    let v2 = c.value(&3);
 
-    assert_eq!(v2, 2);
+    assert_eq!(v2, &"hello");
 }
