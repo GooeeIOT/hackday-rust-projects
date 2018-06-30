@@ -1,0 +1,6 @@
+[package]
+name = "gui"
+version = "0.1.0"
+authors = ["Dustin Rohde <dustin.rohde@gmail.com>"]
+
+[dependencies]
