@@ -32,16 +32,8 @@ impl Config {
     pub fn new(mut args: std::env::Args) -> Result<Config, &'static str> {
         args.next();
 
-        let query = match args.next() {
-            Some(arg) => arg,
-            None => return Err("missing query string"),
-        };
-
-        let filename = match args.next() {
-            Some(arg) => arg,
-            None => return Err("missing filename"),
-        };
-
+        let query = args.next().ok_or("missing query string")?;
+        let filename = args.next().ok_or("missing filename")?;
         let case_sensitive = env::var("CASE_INSENSITIVE").is_err();
 
         Ok(Config {
